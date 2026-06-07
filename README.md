@@ -1,6 +1,10 @@
 # 🚀 Andaz — Next-Gen Learning Dashboard
 
-A high-fidelity, futuristic student dashboard built with **Next.js 16 (App Router)**, **Supabase**, **Framer Motion**, and **Tailwind CSS v4**. Features server-rendered data, hardware-accelerated animations, and zero layout shifts.
+Andaz is a high-fidelity, futuristic student dashboard engineered with **Next.js 16 (App Router)**, **Supabase**, **Framer Motion**, and **Tailwind CSS v4**. It features server-rendered database queries, hardware-accelerated animations, granular route streaming, and zero layout shifts.
+
+🌐 **Live Demo:** [next-gen-learning-dashboard-navy.vercel.app](https://next-gen-learning-dashboard-navy.vercel.app/)
+
+---
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase)
@@ -10,100 +14,142 @@ A high-fidelity, futuristic student dashboard built with **Next.js 16 (App Route
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- **Bento Grid Layout** — Responsive dashboard with Hero, Course, and Activity tiles
-- **Server Components (RSC)** — Courses fetched securely from Supabase on the server
-- **Granular Suspense** — Only course cards show loading skeletons; Hero and Activity render instantly
-- **Spring Physics Animations** — Hover effects with `stiffness: 300, damping: 20`
-- **Staggered Entry** — Tiles fade in with blur reduction (`opacity + translateY + blur`)
-- **layoutId Sidebar** — Active navigation indicator smoothly animates between items
-- **Animated Counters** — Hero stats count up from 0 on mount
-- **Contribution Heatmap** — GitHub-style activity visualization
-- **Dark Mode Only** — Premium dark UI inspired by Linear, Vercel, Raycast
-- **Fully Responsive** — Desktop (sidebar), Tablet (icon-only), Mobile (bottom nav)
-- **Accessibility** — Semantic HTML, keyboard navigation, ARIA labels, `prefers-reduced-motion`
-- **Empty & Error States** — Polished UI for zero courses and database connection failures
+- 🎛️ **Futuristic Bento Grid Layout** — A responsive dashboard structure featuring dynamic interactive tiles: Hero, Course Tracker, and Analytics heatmap.
+- ⚡ **Granular Server-Side Streaming (RSC)** — Securely queries Supabase on the server. The layout employs a granular Suspense boundary so that static parts of the page (Hero & Analytics) render instantly while courses stream in.
+- 🌊 **Aesthetic Mesh Gradients & Grain** — Custom high-performance CSS radial mesh gradients combined with an SVG grain noise texture overlay for a premium, tactile feel.
+- 🎡 **Conic Border Animations & Glows** — Interactive tiles utilize CSS custom properties (`@property`) to animate gradient borders dynamically on hover.
+- 🏎️ **Hardware-Accelerated Spring Animations** — Zero layout shifts using Framer Motion's spring physics (`stiffness: 300`, `damping: 20`) mapped to hardware-accelerated CSS properties.
+- ♿ **Adaptive Accessibility & Reduced Motion** — Full integration with standard CSS media queries and Framer Motion's `useReducedMotion` hook to gracefully disable heavy translations and blurs for users who request it.
 
 ---
 
-## 🏗 Architecture
+## 🏗 System Architecture
 
-### Server/Client Component Split
+Andaz leverages the power of Next.js 16 Server Components to minimize bundle sizes and separate secure operations from the client-side presentation layer.
 
+### Server & Client Component Boundaries
+
+```mermaid
+graph TD
+    A[app/page.tsx - Server Component] --> B[HeroTile - Client Component]
+    A --> C[ActivityTile - Client Component]
+    A --> D[Suspense Boundary]
+    D --> E[CourseSection - Server Component]
+    E --> F[CourseGrid - Client Component]
+    F --> G[CourseTile - Client Component]
+    F --> H[CourseEmptyState - Client Component]
 ```
-app/page.tsx (Server Component)
-├── <HeroTile />                    → Client (mock data — renders instantly)
-├── <ActivityTile />                → Client (mock data — renders instantly)
-└── <Suspense fallback={skeletons}>
-    └── <CourseSection />           → Server (async Supabase fetch)
-        └── <CourseGrid />          → Client (Framer Motion animations)
-```
 
-**Key decision:** The page is a Server Component that uses granular `<Suspense>`. Only `<CourseSection>` (which fetches from Supabase) is wrapped in Suspense. This means:
-
-- Hero tile and Activity tile render immediately — no waiting for the database
-- Course cards show skeleton loaders while Supabase data streams in
-- Better perceived performance and demonstrates strong RSC understanding
-
-### Component Hierarchy
-
-```
-RootLayout (Server)
-├── Sidebar (Client)         — Collapsible nav, layoutId highlight
-├── main
-│   └── DashboardPage (Server)
-│       ├── HeroTile (Client)
-│       │   ├── AnimatedCounter ×4
-│       │   └── WeeklyGoalBar
-│       ├── Suspense → CourseSection (Server)
-│       │   └── CourseGrid (Client)
-│       │       ├── CourseTile × N
-│       │       │   └── ProgressBar
-│       │       └── CourseEmptyState (if 0 courses)
-│       └── ActivityTile (Client)
-│           ├── ContributionHeatmap
-│           └── WeeklyBarChart
-└── MobileNav (Client)      — Bottom nav for mobile
-```
+- **Immediate Render Path**: The main dashboard page (`app/page.tsx`) renders the `<HeroTile />` and `<ActivityTile />` components instantly using mock user parameters and local configuration.
+- **Async Streaming Path**: The course repository data is queried inside `<CourseSection />` asynchronously. While the database request resolves, a styled skeleton card state is presented. Once resolved, the HTML structure is streamed into the grid.
 
 ### Type-Safe Icon Registry
 
-Instead of unsafe `icons[iconName]` bracket lookups, the app uses a typed registry:
+To avoid runtime lookup errors and maintain complete type safety, icons retrieved from the Supabase database are mapped using a custom registry defined in `lib/icon-registry.tsx`:
 
 ```typescript
-const iconRegistry: Record<string, LucideIcon> = { BookOpen, Brain, Code2, ... };
+import { BookOpen, Brain, Code2, Trophy, HelpCircle, LucideIcon } from 'lucide-react';
+
+const iconRegistry: Record<string, LucideIcon> = {
+  BookOpen,
+  Brain,
+  Code2,
+  Trophy,
+};
 
 export function getIcon(name: string): LucideIcon {
-  return iconRegistry[name] ?? FallbackIcon;
+  return iconRegistry[name] ?? HelpCircle;
 }
 ```
 
-Unknown icon names from the database gracefully fall back to a default icon.
+---
+
+## 🎨 Premium Styling Secrets
+
+The visual language of Andaz is heavily inspired by design systems like **Linear**, **Vercel**, and **Raycast**, focusing on dark themes, high-contrast typography, and subtle lighting effects.
+
+### 1. Animated Mesh Gradient & Noise Overlay
+The background is built dynamically in CSS, shifting smoothly to prevent a static feel:
+
+```css
+.mesh-gradient-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 20%, rgba(99, 102, 241, 0.08), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 90% 80%, rgba(139, 92, 246, 0.06), transparent 60%);
+  background-size: 200% 200%;
+  animation: gradient-shift 20s ease-in-out infinite;
+}
+```
+
+A microscopic SVG noise texture overlay is applied with `mix-blend-mode: overlay` to give the surface a tactile grain:
+
+```css
+.mesh-gradient-bg::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.02;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+```
+
+### 2. Conic Gradient Border
+To render interactive border glows, Andaz registers a custom `@property` CSS angle to animate borders smoothly:
+
+```css
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.conic-border {
+  --border-angle: 0deg;
+  border: 1px solid transparent;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  animation: rotate-border 4s linear infinite;
+}
+```
+
+### 3. Tailwind CSS v4 Configuration
+The project is styled using Tailwind CSS v4. Design tokens are injected directly within the `@theme` directive in `app/globals.css`, eliminating the need for a legacy `tailwind.config.js` file:
+
+```css
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --font-sans: var(--font-geist-sans), "Inter", sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+```
 
 ---
 
-## 🗄 Database Setup
+## 🗄 Supabase Database Setup
 
-### 1. Create a Supabase Project
-
-1. Go to [supabase.com](https://supabase.com) and create a free project
-2. Navigate to **Settings → API** to find your project URL and anon key
-
-### 2. Create the `courses` Table
-
-Run this SQL in the **SQL Editor** (`supabase.com/dashboard/project/_/sql/new`):
+### 1. Database Schema
+Execute the following DDL script within your Supabase project's **SQL Editor** (`supabase.com/dashboard/project/_/sql/new`):
 
 ```sql
+-- Create the courses table
 CREATE TABLE courses (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
-  progress INTEGER NOT NULL DEFAULT 0,
+  progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
   icon_name TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Seed data
+-- Seed initial high-quality courses
 INSERT INTO courses (title, progress, icon_name) VALUES
   ('Advanced React Patterns', 75, 'BookOpen'),
   ('System Design Fundamentals', 42, 'Brain'),
@@ -111,14 +157,13 @@ INSERT INTO courses (title, progress, icon_name) VALUES
   ('Data Structures & Algorithms', 28, 'Trophy');
 ```
 
-### 3. Enable Read Access
-
-Ensure Row Level Security (RLS) allows public read access:
+### 2. Row Level Security (RLS) configuration
+Ensure read access is open to public visitors for this static demonstration:
 
 ```sql
 ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read" ON courses
+CREATE POLICY "Allow public read access" ON courses
   FOR SELECT USING (true);
 ```
 
@@ -127,29 +172,56 @@ CREATE POLICY "Allow public read" ON courses
 ## 🚀 Getting Started
 
 ### Prerequisites
+- **Node.js** 18.17.0 or newer
+- **npm** 9.0.0 or newer
 
-- Node.js 18+ and npm
-- A [Supabase](https://supabase.com) project (free tier works)
+### Local Installation
 
-### Installation
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/andaz.git
+   cd andaz
+   ```
 
-```bash
-# Clone the repository
-git clone https://github.com/your-username/andaz.git
-cd andaz
+2. **Install node dependencies:**
+   ```bash
+   npm install
+   ```
 
-# Install dependencies
-npm install
+3. **Set up local environment environment:**
+   Copy the example file to a local environment template:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Open the `.env.local` file and replace the variables with your Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   ```
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your Supabase URL and anon key
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) on your local browser.
 
-# Run development server
-npm run dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
+## 🌐 Deployment Guidelines
+
+Andaz is optimized for deployment on the **Vercel** platform.
+
+### Step-by-Step Vercel Deployment
+
+1. **Push your code** to a GitHub/GitLab repository.
+2. Go to the **Vercel Dashboard** and click **"Add New Project"**.
+3. **Import** the repository containing the codebase.
+4. **Configure Environment Variables**:
+   Add the following keys to your project settings before deploying:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. **Build Command**: Vercel will auto-detect Next.js and run `npm run build`.
+6. Click **Deploy**. Vercel will deploy your site to a globally distributed CDN with full support for Server Components.
 
 ---
 
@@ -158,125 +230,76 @@ Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
 ```
 andaz/
 ├── app/
-│   ├── globals.css           # Tailwind v4 design tokens + base styles
-│   ├── layout.tsx            # Root layout — fonts, metadata, sidebar shell
-│   ├── page.tsx              # Dashboard — granular Suspense architecture
-│   ├── loading.tsx           # Route-level skeleton fallback
-│   └── error.tsx             # Error boundary with retry
+│   ├── globals.css           # Tailwind v4 configuration + base animations
+│   ├── layout.tsx            # Root wrapper containing core layouts, fonts
+│   ├── page.tsx              # Main dashboard assembly with Suspense blocks
+│   ├── loading.tsx           # Route-level loading fallback
+│   └── error.tsx             # Error fallback interface with retry capability
 │
 ├── components/
 │   ├── dashboard/
-│   │   ├── HeroTile.tsx      # Stats centerpiece (greeting, counters, goal)
-│   │   ├── CourseSection.tsx  # Server Component — Supabase fetch
-│   │   ├── CourseGrid.tsx     # Animated grid with stagger
-│   │   ├── CourseTile.tsx     # Individual card (icon, progress, glow)
-│   │   ├── CourseEmptyState.tsx # Zero courses UI
-│   │   ├── CourseSkeletons.tsx  # Loading skeletons
-│   │   ├── ActivityTile.tsx   # Compound analytics tile
-│   │   ├── ContributionHeatmap.tsx # GitHub-style grid
-│   │   └── WeeklyBarChart.tsx # Daily study hours
+│   │   ├── HeroTile.tsx      # Stat counters, weekly goals, and time greetings
+│   │   ├── CourseSection.tsx # Server Component wrapping Supabase queries
+│   │   ├── CourseGrid.tsx    # Animated Grid featuring staggered card entry
+│   │   ├── CourseTile.tsx    # Individual course progress container with glass design
+│   │   ├── CourseEmptyState.tsx  # Display shown when course lists are empty
+│   │   ├── CourseSkeletons.tsx   # Loading placeholders for streaming sections
+│   │   ├── ActivityTile.tsx      # Holds analytics charts
+│   │   ├── ContributionHeatmap.tsx # GitHub-style coding calendar
+│   │   └── WeeklyBarChart.tsx    # Detailed weekly study hour analysis
 │   ├── sidebar/
-│   │   ├── Sidebar.tsx        # Collapsible nav + layoutId
-│   │   ├── SidebarItem.tsx    # Nav item with active highlight
-│   │   └── MobileNav.tsx      # Bottom nav for mobile
+│   │   ├── Sidebar.tsx       # Sidebar panel containing collapsible nav links
+│   │   ├── SidebarItem.tsx   # Side item featuring layoutId indicator
+│   │   └── MobileNav.tsx     # Navigation bar optimized for smaller screens
 │   └── ui/
-│       ├── AnimatedCounter.tsx # Number count-up
-│       ├── ProgressBar.tsx    # Animated progress with glow
-│       ├── GlowCard.tsx       # Reusable card wrapper
-│       ├── Skeleton.tsx       # Loading primitive
-│       └── WeeklyGoalBar.tsx  # Goal progress indicator
+│       ├── AnimatedCounter.tsx   # Interactive count-up visualizers
+│       ├── ProgressBar.tsx       # Glass-style progress indicators
+│       ├── GlowCard.tsx          # Card overlay styling with glow
+│       ├── Skeleton.tsx          # Baseline animation skeleton layouts
+│       └── WeeklyGoalBar.tsx     # Horizontal progress trackers
 │
 ├── hooks/
-│   └── useAnimationConfig.ts  # Reduced motion + animation presets
+│   └── useAnimationConfig.ts # Motion checks & default spring presets
 │
 ├── lib/
-│   ├── supabase/server.ts     # Supabase server client
-│   ├── icon-registry.ts       # Typed Lucide icon map
-│   ├── constants.ts           # Mock data + config
-│   ├── types.ts               # TypeScript interfaces
-│   └── utils.ts               # cn() helper
+│   ├── supabase/
+│   │   └── server.ts         # Supabase client instantiation factory
+│   ├── icon-registry.tsx     # Mapping logic for Lucide icons
+│   ├── constants.ts          # Static parameters & greeting utilities
+│   ├── types.ts              # Custom TypeScript typings
+│   └── utils.ts              # Tailwind utility merge helpers (cn)
 │
-├── .env.example               # Environment variable template
-└── README.md
+├── .env.example              # Template for API credentials
+└── package.json              # App configuration, metadata, and dependencies
 ```
-
----
-
-## 🎨 Design Decisions
-
-### Visual Language
-
-Inspired by **Linear**, **Vercel**, **Raycast**, and **Resend** — not generic admin templates.
-
-- **Color palette**: Near-black backgrounds (`#09090b`), indigo/violet accents, emerald for success
-- **Typography**: Geist font family with tight heading tracking
-- **Effects**: Glassmorphism cards, gradient mesh backgrounds, grain textures, border glow on hover
-- **Animation**: Spring physics (`type: "spring"`) for natural feel, blur-to-focus entry
-
-### Zero Layout Shifts
-
-All animations exclusively use `transform` and `opacity` (GPU-composited properties):
-
-- Hover: `scale(1.02)` via `whileHover` — no `width`/`height`/`margin` changes
-- Progress bar: `scaleX` animation — not `width` transition
-- Border glow: `box-shadow` transition — not border changes
-- Cards: `will-change-transform` hint for compositor promotion
-
-### Reduced Motion Support
-
-Every animated component uses `useReducedMotion()` from Framer Motion. When `prefers-reduced-motion` is active:
-
-- No stagger delays
-- No blur/translate animations
-- No hover scale
-- Counter values show immediately
-- Content remains fully functional
-
-### Supabase Security
-
-- Environment variables use `NEXT_PUBLIC_` prefix (required for Supabase client)
-- Data is fetched in **Server Components** — the Supabase client never runs on the browser
-- `persistSession: false` — no auth persistence needed for read-only access
-- `.env.local` is gitignored; `.env.example` committed as a template
 
 ---
 
 ## 🧪 Challenges & Solutions
 
 | Challenge | Solution |
-|-----------|----------|
-| Framer Motion in RSC | Clear `"use client"` boundary — Server Component fetches data, passes to Client Component for animation |
-| Tailwind CSS v4 breaking changes | Used `@theme inline` syntax and `@import "tailwindcss"` instead of `@tailwind` directives |
-| Next.js 16 error boundary API | Used `unstable_retry` instead of deprecated `reset` per docs |
-| Dynamic icon rendering | Built typed registry with compile-time validation and runtime fallback |
-| Zero layout shifts | Exclusively used `transform`, `opacity`, and `box-shadow` for all animations |
+| :--- | :--- |
+| **Hydration Mismatches in Heatmap** | Generated deterministic heatmap coordinates based on a date-hash seed function (`lib/constants.ts`) instead of using `Math.random()`, ensuring the markup generated on the server matches the client layout exactly. |
+| **Next.js 16 Error Boundary API Changes** | Replaced the deprecated `reset` parameter in the Next.js boundary component with React 19's native `unstable_retry` strategy to handle reconnection attempts gracefully. |
+| **Reduced Motion Compatibility** | Coupled animations with React states using Framer Motion's `useReducedMotion()` hook. This prevents transitions and translations on elements when the OS preference is set to reduce animation. |
+| **RSC & Framer Motion Integration** | Separated the visual entry states (Client Components) from the asynchronous data layer (Server Component). The server fetches array payloads directly, passing them downstream to clients for staggered motion. |
 
 ---
 
-## 📦 Tech Stack
+## 📦 Technologies Used
 
 | Technology | Version | Purpose |
-|-----------|---------|---------|
-| Next.js | 16.2.7 | Framework (App Router, RSC) |
-| React | 19.2.4 | UI Library |
-| Supabase | 2.107+ | PostgreSQL BaaS |
-| Framer Motion | 12.40+ | Animations |
-| Tailwind CSS | 4.x | Styling |
-| Lucide React | 1.17+ | Icons |
-| TypeScript | 5.x | Type Safety |
-
----
-
-## 📝 Assumptions
-
-1. **No authentication** — The assignment doesn't mention auth, so the user name ("Nishtha") is hardcoded in `lib/constants.ts`
-2. **Hero stats are mock data** — Streak, XP, and weekly goal are static values since no user tracking system is required
-3. **Activity data is generated** — Contribution heatmap and weekly hours use deterministic random mock data
-4. **Course progress is stored in Supabase** — The `progress` integer (0-100) represents completion percentage
-5. **Icon names must match the registry** — Invalid `icon_name` values in the database gracefully fall back to a default icon
+| :--- | :--- | :--- |
+| **Next.js** | `16.2.7` | Production React framework using App Router |
+| **React** | `19.2.4` | Component framework supporting React Server Components |
+| **Supabase** | `2.107.0` | PostgreSQL BaaS data storage |
+| **Framer Motion** | `12.40.0` | Spring-physics micro-interaction and transition engine |
+| **Tailwind CSS** | `4.0.0` | High-performance styling configuration |
+| **Lucide React** | `1.17.0` | High-fidelity icons |
+| **TypeScript** | `5.x` | Strongly typed development |
 
 ---
 
 ## 📄 License
 
-MIT
+This project is licensed under the MIT License.
